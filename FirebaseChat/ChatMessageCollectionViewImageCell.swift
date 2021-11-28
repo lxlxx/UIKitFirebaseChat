@@ -46,7 +46,7 @@ class ChatMessageCollectionViewImageCell: ChatMessageCollectionViewBasicCell {
         }
     }
     
-    func zoomInImage(){
+    @objc func zoomInImage(){
         delegate?.zoomInImage(contentImageview)
     }
     

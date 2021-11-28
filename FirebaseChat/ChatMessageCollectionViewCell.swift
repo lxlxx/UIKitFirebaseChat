@@ -14,7 +14,7 @@ class ChatMessageCollectionViewBasicCell: UICollectionViewCell {
     // MARK: Data
     
     var contentDirectionConstraint: NSLayoutConstraint!
-    var messagesBelongTome: Bool { return currentMessages?.fromID == FIRAuth.auth()?.currentUser?.uid }
+    var messagesBelongTome: Bool { return currentMessages?.fromID == Auth.auth().currentUser?.uid }
     
     var currentMessages: Message? {
         didSet{
@@ -53,7 +53,7 @@ class ChatMessageCollectionViewBasicCell: UICollectionViewCell {
     override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
         
         let newFrame = layoutAttributes
-        let desiredHeight = self.contentView.systemLayoutSizeFitting(UILayoutFittingCompressedSize)
+        let desiredHeight = self.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
         
         newFrame.size.height = desiredHeight.height + 4
         newFrame.size.width = UIScreen.main.bounds.width

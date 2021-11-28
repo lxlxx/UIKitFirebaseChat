@@ -31,7 +31,7 @@ class messageCell: UITableViewCell {
     
     fileprivate func setProfilImage(){
         if let userID = currentMessage?.chatPartnerID() {
-            let ref = FIRDatabase.database().reference().child(GlobalString.DB_user_dir).child(userID)
+            let ref = Database.database().reference().child(GlobalString.DB_user_dir).child(userID)
             ref.observe(.value, with: { (snapshot) in
                 if let value = snapshot.value as? [String: AnyObject] {
                     self.textLabel?.text = value[GlobalString.DB_user_userName] as? String
@@ -64,7 +64,7 @@ class messageCell: UITableViewCell {
         detailTextLabel?.frame = detailLabelFrame
     }
     
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
         
 //        profileImageView.image = UIImage(named: "curry")
@@ -129,7 +129,7 @@ class ViewModel {
     
     init(message: Message){
         if let toUserID = message.toID {
-            let ref = FIRDatabase.database().reference().child(GlobalString.DB_user_dir).child(toUserID)
+            let ref = Database.database().reference().child(GlobalString.DB_user_dir).child(toUserID)
             ref.observe(.value, with: { (snapshot) in
                 if let value = snapshot.value as? [String: AnyObject] {
                     self.userName = value[GlobalString.DB_user_userName] as? String

@@ -7,6 +7,9 @@
 //
 
 import UIKit
+import FirebaseDatabase
+import FirebaseAuth
+import FirebaseStorage
 
 
 class LoginVC: UIViewController, UITextFieldDelegate {
@@ -38,7 +41,7 @@ class LoginVC: UIViewController, UITextFieldDelegate {
         })
     }
     
-    func handleLoginRegister(){
+    @objc func handleLoginRegister(){
         if contentView.loginRegisterSegmentedControl.selectedSegmentIndex == 0 {
             handleLogin()
         } else {
@@ -51,7 +54,7 @@ class LoginVC: UIViewController, UITextFieldDelegate {
             let password = contentView.passwordTextfield.text
             else { return }
         
-        FIRAuth.auth()?.signIn(withEmail: email, password: password, completion: { (user, error) in
+        Auth.auth().signIn(withEmail: email, password: password, completion: { (user, error) in
             if error != nil {
                 print(error)
                 return
@@ -66,37 +69,42 @@ class LoginVC: UIViewController, UITextFieldDelegate {
     func handleRegister(){
         guard let email = contentView.emailTextfield.text, let password = contentView.passwordTextfield.text, let name = contentView.nameTextfield.text else { return }
         
-        FIRAuth.auth()?.createUser(withEmail: email, password: password, completion: { [weak weakSelf = self] (user: FIRUser?, error) in
+        Auth.auth().createUser(withEmail: email, password: password) { [weak weakSelf = self] (result: AuthDataResult?, error) in
             
             if error != nil {
                 print(error)
                 return
             }
             
-            guard let uid = user?.uid else { return }
+            guard let uid = result?.user.uid else { return }
             
             let imageName = UUID().uuidString
-            let storageRef = FIRStorage.storage().reference().child("profile_image").child("\(imageName).png")
+            let storageRef = Storage.storage().reference().child("profile_image").child("\(imageName).png")
             
             if let uploadImage = compressImage(weakSelf!.contentView.profileImage.image!){
-                storageRef.put(uploadImage, metadata: nil, completion: { (metadata, putDataError) in
+                storageRef.putData(uploadImage, metadata: nil, completion: { (metadata, putDataError) in
                     if putDataError != nil {
                         print(putDataError)
                         return
                     }
-                    
-                    if let profileImageUrl = metadata?.downloadURL()?.absoluteString {
+                    storageRef.downloadURL(completion: { (url, error) in
+                        if error != nil { printLog( error ); return }
+                        guard let profileImageUrl = url?.absoluteString else { return }
                         let value =  ["name": name, "email": email, "profileImageUrl": profileImageUrl]
                         weakSelf!.handleUploadToFiredataDB(uid, value: value as [String : AnyObject])
-                    }
+                    })
+//                    if let profileImageUrl = metadata?.downloadURL()?.absoluteString {
+//                        let value =  ["name": name, "email": email, "profileImageUrl": profileImageUrl]
+//                        weakSelf!.handleUploadToFiredataDB(uid, value: value as [String : AnyObject])
+//                    }
                 })
             }
             
-        })
+        }
     }
     
     fileprivate func handleUploadToFiredataDB(_ uid: String, value: [String: AnyObject]){
-        let ref = FIRDatabase.database().reference()
+        let ref = Database.database().reference()
         let usersRef = ref.child("users").child(uid)
         
         usersRef.updateChildValues(value, withCompletionBlock: { (updateChildValuesErr, ref) in
@@ -114,10 +122,10 @@ class LoginVC: UIViewController, UITextFieldDelegate {
         })
     }
     
-    func handleLoginRegisterSegment(){
+    @objc func handleLoginRegisterSegment(){
         let SegmentedControl = contentView.loginRegisterSegmentedControl
         let title = SegmentedControl?.titleForSegment(at: (SegmentedControl?.selectedSegmentIndex)!)
-        contentView.loginRegisterButton.setTitle(title, for: UIControlState())
+        contentView.loginRegisterButton.setTitle(title, for: UIControl.State())
         
         contentView.handleLoginRegisterSegmentChangeed(SegmentedControl?.selectedSegmentIndex == 0)
     }

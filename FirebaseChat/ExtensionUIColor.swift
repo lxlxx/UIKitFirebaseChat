@@ -6,7 +6,8 @@
 //  Copyright © 2016 YuFai. All rights reserved.
 //
 
-import Foundation
+import UIKit
+
 
 extension UIColor {
     convenience init(r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat){

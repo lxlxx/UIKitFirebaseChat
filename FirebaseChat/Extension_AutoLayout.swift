@@ -10,7 +10,7 @@ import UIKit
 
 extension NSLayoutConstraint {
     
-    convenience init(v1 view1: AnyObject, a attr1: NSLayoutAttribute, r relation: NSLayoutRelation = .equal, v2 view2: AnyObject?, a2 attr2: NSLayoutAttribute? = nil, m multiplier: CGFloat = 1.0, c constant: CGFloat = 0) {
+    convenience init(v1 view1: AnyObject, a attr1: NSLayoutConstraint.Attribute, r relation: NSLayoutConstraint.Relation = .equal, v2 view2: AnyObject?, a2 attr2: NSLayoutConstraint.Attribute? = nil, m multiplier: CGFloat = 1.0, c constant: CGFloat = 0) {
         
         if attr2 == nil {
             self.init(item: view1, attribute: attr1, relatedBy: relation, toItem: view2, attribute: attr1, multiplier: multiplier, constant: constant)
@@ -19,7 +19,7 @@ extension NSLayoutConstraint {
         }
     }
     
-    convenience init(v view: AnyObject, WorH: NSLayoutAttribute, c constant: CGFloat){
+    convenience init(v view: AnyObject, WorH: NSLayoutConstraint.Attribute, c constant: CGFloat){
         self.init(item: view, attribute: WorH, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: constant)
     }
     
@@ -27,7 +27,7 @@ extension NSLayoutConstraint {
 
 extension UIView {
     
-    func addConstraintsWithFormat(_ format: String, views: UIView..., options: NSLayoutFormatOptions = NSLayoutFormatOptions(), metrics:[String: CGFloat]?=nil){
+    func addConstraintsWithFormat(_ format: String, views: UIView..., options: NSLayoutConstraint.FormatOptions = NSLayoutConstraint.FormatOptions(), metrics:[String: CGFloat]?=nil){
         
         var viewsDicationary = [String: UIView]()
         
@@ -41,7 +41,7 @@ extension UIView {
     }
     
     
-    func addAutoLayout(v1 view1: UIView, a attr1: NSLayoutAttribute, v2 view2: AnyObject, a2 attr2: NSLayoutAttribute?=nil, r relation: NSLayoutRelation=NSLayoutRelation.equal,c constant: CGFloat=0, m multiplier:CGFloat=1){
+    func addAutoLayout(v1 view1: UIView, a attr1: NSLayoutConstraint.Attribute, v2 view2: AnyObject, a2 attr2: NSLayoutConstraint.Attribute?=nil, r relation: NSLayoutConstraint.Relation=NSLayoutConstraint.Relation.equal,c constant: CGFloat=0, m multiplier:CGFloat=1){
         
         if attr2 == nil {
             self.addConstraint(NSLayoutConstraint(item: view1, attribute: attr1, relatedBy: relation, toItem: view2, attribute: attr1, multiplier: multiplier, constant: constant))
@@ -50,7 +50,7 @@ extension UIView {
         }
     }
     
-    func addAutoLayoutHeightWidth(v view1: UIView, setHeight: CGFloat?=nil, setWidth: CGFloat?=nil, relation: NSLayoutRelation=NSLayoutRelation.equal){
+    func addAutoLayoutHeightWidth(v view1: UIView, setHeight: CGFloat?=nil, setWidth: CGFloat?=nil, relation: NSLayoutConstraint.Relation=NSLayoutConstraint.Relation.equal){
         
         if setHeight != nil {
             self.addConstraint(NSLayoutConstraint(item: view1, attribute: .height, relatedBy: relation, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: setHeight!))
@@ -65,7 +65,7 @@ extension UIView {
     func packInSubview(v1 contentView: UIView, v2 containerView: UIView, left:Bool=true, right:Bool=true, top:Bool=true, bottom:Bool=true,c constant:CGFloat=8){
         
         let Options: [Bool] = [left, right, top, bottom]
-        let Attributes: [NSLayoutAttribute] = [NSLayoutAttribute.left, NSLayoutAttribute.right, NSLayoutAttribute.top, NSLayoutAttribute.bottom]
+        let Attributes: [NSLayoutConstraint.Attribute] = [NSLayoutConstraint.Attribute.left, NSLayoutConstraint.Attribute.right, NSLayoutConstraint.Attribute.top, NSLayoutConstraint.Attribute.bottom]
         let constants: [CGFloat] = [constant, -constant, constant, -constant]
         
         for (index, option) in Options.enumerated() {

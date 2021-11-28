@@ -19,9 +19,9 @@ class TestingDeinit: UIViewController {
     
     func addButton(){
         pushButton = UIButton()
-        pushButton.setTitleColor(UIColor.white, for: UIControlState())
+        pushButton.setTitleColor(UIColor.white, for: UIControl.State())
         pushButton.backgroundColor = UIColor(r: 80, g: 101, b: 161, a: 1)
-        pushButton.setTitle("push", for: UIControlState())
+        pushButton.setTitle("push", for: UIControl.State())
         pushButton.addTarget(self, action: #selector(pushToMessagePage), for: .touchUpInside)
         
         pushButton.translatesAutoresizingMaskIntoConstraints = false
@@ -33,7 +33,7 @@ class TestingDeinit: UIViewController {
         self.view.addAutoLayout(v1: pushButton, a: .centerY, v2: self.view)
     }
     
-    func pushToMessagePage(sender: UIButton){
+    @objc func pushToMessagePage(sender: UIButton){
         print(sender.currentTitle)
         self.navigationController?.pushViewController(MessageVC(), animated: true)
     }
@@ -47,11 +47,11 @@ class TestingDeinit: UIViewController {
     }
     
     func getAllMessages(){
-        let ref = FIRDatabase.database().reference().child(GlobalString.message)
+        let ref = Database.database().reference().child(GlobalString.message)
         ref.observe(.childAdded, with: { [ weak weakSelf = self] (snapshot) in
             
             let messageID = snapshot.key
-            let messagesRef = FIRDatabase.database().reference().child(GlobalString.message).child(messageID)
+            let messagesRef = Database.database().reference().child(GlobalString.message).child(messageID)
             guard let result = snapshot.value as? [String: Any] else { return }
             if let time = result["timestamp"]{
                 if let seconds = (time as AnyObject).doubleValue {

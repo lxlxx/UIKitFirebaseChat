@@ -10,23 +10,23 @@ import UIKit
 
 extension LoginVC: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
-    func handleSelectImage(_ gesture: UITapGestureRecognizer){
+    @objc func handleSelectImage(_ gesture: UITapGestureRecognizer){
         if gesture.state == .ended {
             let pickerController = UIImagePickerController()
             pickerController.delegate = self
             pickerController.allowsEditing = true
-            pickerController.sourceType = UIImagePickerControllerSourceType.photoLibrary
+            pickerController.sourceType = UIImagePickerController.SourceType.photoLibrary
             
             self.present(pickerController, animated: true, completion: nil)
         }
     }
 // MARK: UIImagePickerControllerDelegate
 
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         
-        var image = info[UIImagePickerControllerEditedImage] as? UIImage
+        var image = info[UIImagePickerController.InfoKey.editedImage] as? UIImage
         if image == nil {
-            image = info[UIImagePickerControllerOriginalImage] as? UIImage
+            image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
         }
         contentView.profileImage.image = image
         

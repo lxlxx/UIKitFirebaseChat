@@ -7,6 +7,9 @@
 //
 
 import UIKit
+import FirebaseDatabase
+import FirebaseAuth
+import FirebaseStorage
 
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
@@ -70,31 +73,31 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     // should handleSend and fetch result in a model like tweets
     fileprivate func handleSend(_ contents: [String: NSObject]) {
         guard let toUserID = currentUser!.id else { return }
-        guard let fromUserID = FIRAuth.auth()?.currentUser?.uid else { return }
+        guard let fromUserID = Auth.auth().currentUser?.uid else { return }
         
-        let ref = FIRDatabase.database().reference().child("messages")
+        let ref = Database.database().reference().child("messages")
         let childRef = ref.childByAutoId()
         let timestamp: NSNumber = NSNumber(integerLiteral: Int(Date().timeIntervalSince1970))
         var values = ["toID": toUserID, "fromID": fromUserID, "timestamp": timestamp] as [String : Any]
         
         contents.forEach{ values[$0] = $1 }
         
-        childRef.updateChildValues(values){
-            if let err = $0.0 { print(err); return }
+        childRef.updateChildValues(values){ (error: Error?, databaseRef) in
+            if let err = error { print(err); return }
             
             let messageID = childRef.key
             
-            let fromUserIDMessageRef = FIRDatabase.database().reference().child(GlobalString.userMessage).child(fromUserID).child(toUserID)
+            let fromUserIDMessageRef = Database.database().reference().child(GlobalString.userMessage).child(fromUserID).child(toUserID)
             fromUserIDMessageRef.updateChildValues([messageID: 1])
-            let toUserIDMessageRef = FIRDatabase.database().reference().child(GlobalString.userMessage).child(toUserID).child(fromUserID)
+            let toUserIDMessageRef = Database.database().reference().child(GlobalString.userMessage).child(toUserID).child(fromUserID)
             toUserIDMessageRef.updateChildValues([messageID: 1])
             
         }
         messageInputView.inputTextField.text = nil
     }
     
-    func sendText(){
-        if messageInputView.inputTextField.text?.characters.count > 0 {
+    @objc func sendText(){
+        if messageInputView.inputTextField.text?.count > 0 {
             guard let inputMessage = messageInputView.inputTextField.text else { return }
             handleSend(["text":inputMessage as NSObject])
         }
@@ -102,15 +105,17 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     
     func sendImage(_ imageWillUpload: UIImage){
         let imageName = UUID().uuidString
-        let ref = FIRStorage.storage().reference().child(GlobalString.DB_message_image).child("\(imageName).png")
+        let ref = Storage.storage().reference().child(GlobalString.DB_message_image).child("\(imageName).png")
         
         if let compressedImage = compressImage(imageWillUpload) {
-            ref.put(compressedImage, metadata: nil, completion: { [ weak weakSelf = self] (metadata, error) in
+            ref.putData(compressedImage, metadata: nil, completion: { [ weak weakSelf = self] (metadata, error) in
                 if error != nil { printLog(error) ; return }
-                
-                if let imageURL = metadata?.downloadURL()?.absoluteString {
-                    weakSelf?.handleSend([GlobalString.message_imageURL: imageURL as NSObject, GlobalString.message_imageWidth: imageWillUpload.size.width as NSObject, GlobalString.message_imageHeight: imageWillUpload.size.height as NSObject])
-                }
+                metadata?.storageReference?.downloadURL(completion:{ (url, error) in
+                    if error != nil { printLog(error) ; return }
+                    if let imageURL = url {
+                        weakSelf?.handleSend([GlobalString.message_imageURL: imageURL as NSObject, GlobalString.message_imageWidth: imageWillUpload.size.width as NSObject, GlobalString.message_imageHeight: imageWillUpload.size.height as NSObject])
+                    }
+                })
             })
         }
     }
@@ -159,12 +164,12 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
 
 
     func fetchChatPartnerMessages(){
-        guard let myID = FIRAuth.auth()?.currentUser?.uid, let chatPartnerUserID = currentUser!.id else { return }
-        let ref = FIRDatabase.database().reference().child(GlobalString.userMessage).child(myID).child(chatPartnerUserID)
+        guard let myID = Auth.auth().currentUser?.uid, let chatPartnerUserID = currentUser!.id else { return }
+        let ref = Database.database().reference().child(GlobalString.userMessage).child(myID).child(chatPartnerUserID)
         ref.observe(.childAdded, with: { [ weak weakSelf = self] (snapshot) in
             
             let messageID = snapshot.key
-            let messagesRef = FIRDatabase.database().reference().child(GlobalString.message).child(messageID)
+            let messagesRef = Database.database().reference().child(GlobalString.message).child(messageID)
             
             weakSelf?.fetchMessageContentByID(messagesRef)
             
@@ -172,7 +177,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     }
     
     
-    func fetchMessageContentByID(_ ref: FIRDatabaseReference){
+    func fetchMessageContentByID(_ ref: DatabaseReference){
         ref.observeSingleEvent(of:.value, with: { [ weak weakSelf = self] (snapshot) in
             if let dictionary = snapshot.value as? [String: AnyObject] {
                 weakSelf?.appendMessageWithSmartClass(dictionary, target: weakSelf)
@@ -190,7 +195,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     }
 
     
-    func reloadCollectionViewByNSTimer(){
+    @objc func reloadCollectionViewByNSTimer(){
 //        self.currentMessages.sortInPlace{ $0.timestamp?.intValue < $1.timestamp?.intValue }
         
         DispatchQueue.main.async{
@@ -209,11 +214,11 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         }
     }
     
-    func launchImagePicker(){
+    @objc func launchImagePicker(){
         let imagePickerController = UIImagePickerController()
         imagePickerController.delegate = self
         imagePickerController.allowsEditing = true
-        imagePickerController.sourceType = UIImagePickerControllerSourceType.photoLibrary
+        imagePickerController.sourceType = UIImagePickerController.SourceType.photoLibrary
         self.present(imagePickerController, animated: true, completion: nil)
     }
 
@@ -311,14 +316,14 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
 //        zoomimage.startZoomInImage(startImage, target: self, zoomOutImage: #selector(zoomOutImage))
     }
     
-    func zoomOutImage(_ gesture: UITapGestureRecognizer){
+    @objc func zoomOutImage(_ gesture: UITapGestureRecognizer){
         startZoomOutImage(gesture)
 //        zoomimage.startZoomOutImage(gesture)
     }
     
     
 // MARK: - handleKeyboard
-    func handleKeyboardWillShow(_ notification: Notification, scroll:Bool=true) {
+    @objc func handleKeyboardWillShow(_ notification: Notification, scroll:Bool=true) {
         handleKeyboardShow_v2(notification) { [ weak weakSelf = self ] (keyboardWillShow, keyboardHeight, duration) in
             weakSelf?.messageInputViewBottomConstraint.constant = keyboardWillShow ? -keyboardHeight : 0
             UIView.animate(withDuration: duration, animations: {

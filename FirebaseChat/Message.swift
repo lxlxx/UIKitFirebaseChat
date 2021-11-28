@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import FirebaseAuth
 
 
 enum MessageTypes{
@@ -17,7 +18,7 @@ enum MessageTypes{
 
 class SafeJSONObject: NSObject {
     override func setValue(_ value: Any?, forKey key: String) {
-        let setValueSelectorString = "set\(key.uppercased().characters.first!)\(String(key.characters.dropFirst())):"
+        let setValueSelectorString = "set\(key.uppercased().first!)\(String(key.dropFirst())):"
         let setValueSelector = Selector(setValueSelectorString)
         if responds(to: setValueSelector) {
             super.setValue(value, forKey: key)
@@ -26,27 +27,27 @@ class SafeJSONObject: NSObject {
 }
 
 class Message: SafeJSONObject {
-    var fromID: String?
-    var timestamp: NSNumber?
-    var toID: String?
+    @objc var fromID: String?
+    @objc var timestamp: NSNumber?
+    @objc var toID: String?
     
     var messageType: MessageTypes { return .text }
     
     func chatPartnerID() -> String? {
-        return fromID == FIRAuth.auth()?.currentUser?.uid ? toID : fromID
+        return fromID == Auth.auth().currentUser?.uid ? toID : fromID
     }
 }
 
 class imageMessage: Message {
-    var imageURL: String?
-    var imageHeight: NSNumber?
-    var imageWidth: NSNumber?
+    @objc var imageURL: String?
+    @objc var imageHeight: NSNumber?
+    @objc var imageWidth: NSNumber?
     
     override var messageType: MessageTypes { return .image }
 }
 
 class textMessage: Message {
-    var text: String?
+    @objc var text: String?
     
     override var messageType: MessageTypes { return .text }
     
@@ -70,9 +71,9 @@ class videoMessage: Message {
 
 class smartMessage2 {
     
-    var resultMessage: Message?
+    @objc var resultMessage: Message?
     
-    fileprivate var messageTypes2: Dictionary<String, Message> = [
+    @objc fileprivate var messageTypes2: Dictionary<String, Message> = [
         //example "chineseText" : MessageType.text(textMessage().textvalue = 20 ),
         "text" : textMessage(),
         "imageURL" : imageMessage(),

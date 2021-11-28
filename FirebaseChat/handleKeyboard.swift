@@ -22,13 +22,13 @@ extension handleKeyboard where Self: UIViewController {
         
         if let userInfo = (notification as NSNotification).userInfo {
             
-            let keyboardFram = (userInfo[UIKeyboardFrameBeginUserInfoKey] as AnyObject).cgRectValue
+            let keyboardFram = (userInfo[UIResponder.keyboardFrameBeginUserInfoKey] as AnyObject).cgRectValue
             
-            let keyboardShowing = notification.name == NSNotification.Name.UIKeyboardWillShow
+            let keyboardShowing = notification.name == UIWindow.keyboardWillShowNotification
             
             view.frame.origin.y = keyboardShowing ? -keyboardFram!.height / 2 : 0
             
-            UIView.animate(withDuration: 0, delay: 0, options: UIViewAnimationOptions.curveEaseOut, animations: {
+            UIView.animate(withDuration: 0, delay: 0, options: UIView.AnimationOptions.curveEaseOut, animations: {
                 
                 self.view.layoutIfNeeded()
                 
@@ -39,9 +39,9 @@ extension handleKeyboard where Self: UIViewController {
     }
     
     func handleKeyboardShow_v2(_ notification: Notification, done: (_ keyboardWillShow: Bool, _ keyboardHeight: CGFloat, _ keyboardDuration:Double) -> ()){
-        let keyboardShowing = notification.name == NSNotification.Name.UIKeyboardWillShow
-        let keyboardFrame = ((notification as NSNotification).userInfo?[UIKeyboardFrameEndUserInfoKey] as AnyObject).cgRectValue
-        let keyboardDuration = ((notification as NSNotification).userInfo?[UIKeyboardAnimationDurationUserInfoKey] as AnyObject).doubleValue
+        let keyboardShowing = notification.name == UIWindow.keyboardWillShowNotification
+        let keyboardFrame = ((notification as NSNotification).userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as AnyObject).cgRectValue
+        let keyboardDuration = ((notification as NSNotification).userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as AnyObject).doubleValue
         
 //        UIView.animateWithDuration(keyboardDuration!) {
             done(keyboardShowing, (keyboardFrame?.height)!, keyboardDuration!)
@@ -54,8 +54,8 @@ extension handleKeyboard where Self: UIViewController {
         //        class SignUpPageController: UIViewController, UITextFieldDelegate, handleKeyboard {
         //              入面
         //        }
-        NotificationCenter.default.addObserver(self, selector: keyboardHandler, name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: keyboardHandler, name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: keyboardHandler, name: UIWindow.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: keyboardHandler, name: UIWindow.keyboardWillHideNotification, object: nil)
         
     }
     

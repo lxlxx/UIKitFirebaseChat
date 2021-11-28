@@ -5,6 +5,7 @@
 //  Created by yu fai on 5/8/2016.
 //  Copyright © 2016 YuFai. All rights reserved.
 //
+import UIKit
 
 class NavigationBarTitleView: UIView {
     

@@ -19,8 +19,8 @@ class MessageInputView: UIView {
     
     lazy var sendButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Send", for: UIControlState())
-        button.setTitleColor(UIColor(red: 0, green: 134/255, blue: 230/255, alpha: 0.9), for: UIControlState())
+        button.setTitle("Send", for: UIControl.State())
+        button.setTitleColor(UIColor(red: 0, green: 134/255, blue: 230/255, alpha: 0.9), for: UIControl.State())
         button.setTitleColor(UIColor(white: 0.8, alpha: 0.8), for: .highlighted)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
 //        button.addTarget(self, action: #selector(sendMessage), forControlEvents: .TouchUpInside)

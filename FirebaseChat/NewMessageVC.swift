@@ -7,7 +7,9 @@
 //
 
 import UIKit
-
+import FirebaseDatabase
+import FirebaseAuth
+import FirebaseStorage
 
 class NewMessageVC: UITableViewController {
     
@@ -24,9 +26,9 @@ class NewMessageVC: UITableViewController {
 // MARK: func
     
     func fetchUsers(){
-        FIRDatabase.database().reference().child("users").observe(.childAdded, with: { [ weak weakSelf = self ] (snapshot) in
+        Database.database().reference().child("users").observe(.childAdded, with: { [ weak weakSelf = self ] (snapshot) in
             if let dictionary = snapshot.value as? [String: AnyObject]{
-                guard let uid = FIRAuth.auth()?.currentUser?.uid else { return }
+                guard let uid = Auth.auth().currentUser?.uid else { return }
                 let user = User()
                 
                 if uid != snapshot.key {
@@ -48,7 +50,7 @@ class NewMessageVC: UITableViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(handleCancel))
     }
     
-    func handleCancel(){
+    @objc func handleCancel(){
         self.dismiss(animated: true, completion: nil)
     }
 

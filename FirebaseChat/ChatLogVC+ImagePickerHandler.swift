@@ -10,11 +10,11 @@ import UIKit
 
 extension ChatLogController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+    internal func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         
-        var image = info[UIImagePickerControllerEditedImage] as? UIImage
+        var image = info[UIImagePickerController.InfoKey.editedImage] as? UIImage
         if image == nil {
-            image = info[UIImagePickerControllerOriginalImage] as? UIImage
+            image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
         }
         
         if let imageWillUpload = image {
@@ -28,15 +28,15 @@ extension ChatLogController: UIImagePickerControllerDelegate, UINavigationContro
 func compressImage(_ image: UIImage, defaultSize: Int = 1 * 1000 * 1000) -> Data? {
     let oneMB = defaultSize // 1 MB default
     var rightSizeImage: Data!
-    guard let currentImage = UIImagePNGRepresentation(image) else { return nil }
+    guard let currentImage = image.pngData() else { return nil }
     if currentImage.count >= 10 * oneMB {
         print("image size too large")
     } else if currentImage.count >= oneMB {
-        rightSizeImage = UIImageJPEGRepresentation(image, 0.01) // image size / 100
+        rightSizeImage = image.jpegData(compressionQuality: 0.01) // image size / 100
     } else if currentImage.count >= oneMB / 10 {
-        rightSizeImage = UIImageJPEGRepresentation(image, 0.1)
+        rightSizeImage = image.jpegData(compressionQuality: 0.1)
     } else {
-        rightSizeImage = UIImageJPEGRepresentation(image, 1)
+        rightSizeImage = image.jpegData(compressionQuality: 1)
     }
     return rightSizeImage
 }

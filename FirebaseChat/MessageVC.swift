@@ -7,7 +7,9 @@
 //
 
 import UIKit
-
+import FirebaseDatabase
+import FirebaseAuth
+import FirebaseStorage
 
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
@@ -51,7 +53,7 @@ class MessageVC: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: rightBarImage, style: .plain, target: self, action: #selector(handleNewMessage))
     }
     
-    func testDeinit(){
+    @objc func testDeinit(){
         self.navigationController?.pushViewController(TestingDeinit(), animated: true)
     }
     
@@ -62,8 +64,8 @@ class MessageVC: UITableViewController {
     }
     
     func fetchUserNameSetTitle(){
-        guard let uid = FIRAuth.auth()?.currentUser?.uid else { return }
-        FIRDatabase.database().reference().child(GlobalString.DB_user_dir).child(uid).observeSingleEvent(of: .value, with: {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        Database.database().reference().child(GlobalString.DB_user_dir).child(uid).observeSingleEvent(of: .value, with: {
             (snapshot) in
             if let dictionary = snapshot.value as? [String: AnyObject] {
                 guard let profileImageURL = dictionary[GlobalString.DB_user_profileImageUrl] as? String else { return }
@@ -77,7 +79,7 @@ class MessageVC: UITableViewController {
     
 // MARK: func
     
-    func handleNewMessage(){
+    @objc func handleNewMessage(){
         let messageVC = NewMessageVC()
         messageVC.messageVC = self
         let newMessageVC = UINavigationController(rootViewController: messageVC)
@@ -85,13 +87,13 @@ class MessageVC: UITableViewController {
         self.present(newMessageVC, animated: true, completion: nil)
     }
     
-    func handleLogout(){
+    @objc func handleLogout(){
         currentMessages.removeAll()
         messageDictionary.removeAll()
         tableView.reloadData()
         
         do {
-            try FIRAuth.auth()?.signOut()
+            try Auth.auth().signOut()
         } catch let err {
             print(err)
         }
@@ -101,7 +103,7 @@ class MessageVC: UITableViewController {
     }
     
     func checkUserIsLogin(){
-        if FIRAuth.auth()?.currentUser?.uid == nil {
+        if Auth.auth().currentUser?.uid == nil {
             perform(#selector(handleLogout), with: nil, afterDelay: 0)
         } else {
             fetchUserNameSetTitle()
@@ -115,15 +117,15 @@ class MessageVC: UITableViewController {
     }
     
     func fetchUserMessages(){
-        guard let uid = FIRAuth.auth()?.currentUser?.uid else { return }
-        let ref = FIRDatabase.database().reference().child(GlobalString.userMessage).child(uid)
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        let ref = Database.database().reference().child(GlobalString.userMessage).child(uid)
         ref.observe(.childAdded, with: { (snapshot) in
             
             let chatPartnersID = snapshot.key
-            let chatPartnersmessagesRef = FIRDatabase.database().reference().child(GlobalString.userMessage).child(uid).child(chatPartnersID)
+            let chatPartnersmessagesRef = Database.database().reference().child(GlobalString.userMessage).child(uid).child(chatPartnersID)
             chatPartnersmessagesRef.observe(.childAdded, with: { (snapshot) in
                 let messageID = snapshot.key
-                let messagesRef = FIRDatabase.database().reference().child(GlobalString.message).child(messageID)
+                let messagesRef = Database.database().reference().child(GlobalString.message).child(messageID)
                 
                 self.fetchMessageContentByID(messagesRef)
             })
@@ -131,7 +133,7 @@ class MessageVC: UITableViewController {
             }, withCancel: nil)
     }
     
-    func fetchMessageContentByID(_ ref: FIRDatabaseReference){
+    func fetchMessageContentByID(_ ref: DatabaseReference){
         ref.observe(.value, with: { (snapshot) in
             // using smartMessage switch messagetype case text: append case video
             if let dictionary = snapshot.value as? [String: AnyObject] {
@@ -154,7 +156,7 @@ class MessageVC: UITableViewController {
             }, withCancel: nil)
     }
     
-    func reloadTableViewByNSTimer(){
+    @objc func reloadTableViewByNSTimer(){
         self.currentMessages = Array(self.messageDictionary.values)
         self.currentMessages.sort{ $0.timestamp?.int32Value > $1.timestamp?.int32Value }
         
@@ -204,7 +206,7 @@ class MessageVC: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let message = currentMessages[(indexPath as NSIndexPath).row]
         guard let chatPartnerID = message.chatPartnerID() else { return }
-        let ref = FIRDatabase.database().reference().child(GlobalString.DB_user_dir).child(chatPartnerID)
+        let ref = Database.database().reference().child(GlobalString.DB_user_dir).child(chatPartnerID)
         ref.observeSingleEvent(of: .value, with:  { snapshot in
             guard let dictionary = snapshot.value as? [String: AnyObject] else { return }
             

@@ -140,9 +140,9 @@ class LoginView: UIView {
         containerView.layer.masksToBounds = true
         
         loginRegisterButton = UIButton(type: .system)
-        loginRegisterButton.setTitleColor(UIColor.white, for: UIControlState())
+        loginRegisterButton.setTitleColor(UIColor.white, for: UIControl.State())
         loginRegisterButton.backgroundColor = UIColor(r: 80, g: 101, b: 161, a: 1)
-        loginRegisterButton.setTitle("Register", for: UIControlState())
+        loginRegisterButton.setTitle("Register", for: UIControl.State())
         loginRegisterButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         
         nameTextfield = UITextField()

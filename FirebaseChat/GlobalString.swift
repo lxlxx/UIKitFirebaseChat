@@ -6,7 +6,7 @@
 //  Copyright © 2016 YuFai. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
 struct GlobalString {
     static var message:String = "messages"
