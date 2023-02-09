@@ -27,7 +27,7 @@ class MessageInputView: UIView {
         return button
     }()
     
-    weak var inputTextField: UITextField! = {
+    var inputTextField: UITextField = {
         let textfield = UITextField()
         textfield.placeholder = "Enter Message .... "
         return textfield
