@@ -85,7 +85,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         childRef.updateChildValues(values){ (error: Error?, databaseRef) in
             if let err = error { print(err); return }
             
-            let messageID = childRef.key
+            guard let messageID = childRef.key else { return }
             
             let fromUserIDMessageRef = Database.database().reference().child(GlobalString.userMessage).child(fromUserID).child(toUserID)
             fromUserIDMessageRef.updateChildValues([messageID: 1])
@@ -110,9 +110,9 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         if let compressedImage = compressImage(imageWillUpload) {
             ref.putData(compressedImage, metadata: nil, completion: { [ weak weakSelf = self] (metadata, error) in
                 if error != nil { printLog(error) ; return }
-                metadata?.storageReference?.downloadURL(completion:{ (url, error) in
+                ref.downloadURL(completion:{ (url, error) in
                     if error != nil { printLog(error) ; return }
-                    if let imageURL = url {
+                    if let imageURL = url?.absoluteString {
                         weakSelf?.handleSend([GlobalString.message_imageURL: imageURL as NSObject, GlobalString.message_imageWidth: imageWillUpload.size.width as NSObject, GlobalString.message_imageHeight: imageWillUpload.size.height as NSObject])
                     }
                 })
