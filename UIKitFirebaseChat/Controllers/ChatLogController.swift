@@ -5,6 +5,9 @@
 //  Created by yu fai on 7/8/2016.
 //  Copyright © 2016 YuFai. All rights reserved.
 //
+// https://medium.com/swift2go/implementing-a-dynamic-height-uicollectionviewcell-in-swift-5-bdd912acd5c8
+// https://stackoverflow.com/questions/25895311/uicollectionview-self-sizing-cells-with-auto-layout
+// https://stackoverflow.com/questions/13780138/dynamically-setting-layout-on-uicollectionview-causes-inexplicable-contentoffset/58108897#58108897
 
 import UIKit
 import FirebaseDatabase
@@ -63,8 +66,10 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         messageInputView.translatesAutoresizingMaskIntoConstraints = false
         messageInputView.inputTextField.delegate = self
         
+        guard let messageInputView = messageInputView else { return }
         messageInputViewBottomConstraint = NSLayoutConstraint(v1: messageInputView, a: .bottom, v2: self.view, c: -8)
         self.view.addConstraint(messageInputViewBottomConstraint)
+        
         self.view.addConstraintsWithFormat("H:|[v0]|", views: messageInputView)
         self.view.addConstraintsWithFormat("V:[v0(48)]", views: messageInputView)
     }
@@ -193,23 +198,22 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         sMessage.setMessage2(dictionary)
         guard let resultMessage = sMessage.resultMessage else { return }
         target?.currentMessages.append(resultMessage)
+//        printLog(currentMessages)
     }
 
     
     @objc func reloadCollectionViewByNSTimer(){
-//        self.currentMessages.sortInPlace{ $0.timestamp?.intValue < $1.timestamp?.intValue }
-        
         DispatchQueue.main.async{
+            self.collectionView.reloadData()
+            
+//            self.collectionView.setNeedsLayout()
+//            self.collectionView.layoutIfNeeded()
             self.scrollToBottom()
         }
     }
     
     func scrollToBottom(_ animated: Bool=false){
-        self.collectionView?.reloadData()
-        self.collectionView?.collectionViewLayout.invalidateLayout()
-        self.collectionView?.layoutIfNeeded()
         if currentMessages.count > 0 {
-            
             let indexPath = IndexPath(item: currentMessages.count - 1, section: 0)
             collectionView?.scrollToItem(at: indexPath, at: .bottom, animated: animated)
         }
@@ -232,7 +236,9 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         let mainScreen = UIScreen.main.bounds
 //        let shortSide = mainScreen.width > mainScreen.height ? mainScreen.height : mainScreen.width
         let shortSide = min(mainScreen.width, mainScreen.height)
-        flowLayout.estimatedItemSize = CGSize(width: shortSide, height: 50)
+        
+        flowLayout.estimatedItemSize = CGSize(width: shortSide, height: 100)
+//        collectionView.contentInsetAdjustmentBehavior = .always\
         
 //        flowLayout.scrollDirection = .Vertical
         
@@ -259,6 +265,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     
     deinit{
         printLog("ChatLogController deinit")
+        cellHeight = [:]
     }
 
 // MARK: - Collection View data source
@@ -284,6 +291,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
         cell.currentChatPartner = currentUser
         cell.currentMessages = currentMessages[indexPath.item]
 
+        cell.id = indexPath.item
         return cell
     }
     
@@ -397,5 +405,77 @@ struct testingZoom {
                     zoomImage.removeFromSuperview()
             })
         }
+    }
+}
+
+
+extension UIViewController {
+    func reloadCollectionViewWithFontSizeChanges(_ collectionView: UICollectionView) {
+        NotificationCenter.default.addObserver(forName: UIContentSizeCategory.didChangeNotification,
+            object: nil,
+            queue: OperationQueue.main) { (notification) -> Void in
+                collectionView.reloadData()
+        }
+    }
+}
+
+
+var avoidAppleMessupCarsLayouts: CGPoint? = nil
+
+class FixerForCarsLayouts: UICollectionViewLayout {
+    
+    override func prepareForTransition(from oldLayout: UICollectionViewLayout) {
+        avoidAppleMessupCarsLayouts = collectionView?.contentOffset
+    }
+    
+    override func targetContentOffset(
+        forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
+        if avoidAppleMessupCarsLayouts != nil {
+            return avoidAppleMessupCarsLayouts!
+        }
+        return super.targetContentOffset(forProposedContentOffset: proposedContentOffset)
+    }
+}
+
+
+final class CommentFlowLayout : UICollectionViewFlowLayout {
+    
+    override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+            let layoutAttributesObjects = super.layoutAttributesForElements(in: rect)?.map{ $0.copy() } as? [UICollectionViewLayoutAttributes]
+            layoutAttributesObjects?.forEach({ layoutAttributes in
+                if layoutAttributes.representedElementCategory == .cell {
+                    if let newFrame = layoutAttributesForItem(at: layoutAttributes.indexPath)?.frame {
+                        layoutAttributes.frame = newFrame
+                    }
+                }
+            })
+            return layoutAttributesObjects
+        }
+    
+    
+    override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        
+        
+        guard let collectionView = collectionView else {
+                    fatalError()
+                }
+        guard let layoutAttributes = super.layoutAttributesForItem(at: indexPath)?.copy() as? UICollectionViewLayoutAttributes else {
+            return nil
+        }
+
+        layoutAttributes.frame.origin.x = sectionInset.left
+        layoutAttributes.frame.size.width = collectionView.safeAreaLayoutGuide.layoutFrame.width - sectionInset.left - sectionInset.right
+        return layoutAttributes
+    }
+    
+}
+
+var cellHeight:[Int: CGRect] = [:]
+
+extension UIScrollView {
+    func scrollToBottom(animated: Bool) {
+        let y = contentSize.height - 1
+        let rect = CGRect(x: 0, y: y + safeAreaInsets.bottom, width: 1, height: 1)
+        scrollRectToVisible(rect, animated: animated)
     }
 }

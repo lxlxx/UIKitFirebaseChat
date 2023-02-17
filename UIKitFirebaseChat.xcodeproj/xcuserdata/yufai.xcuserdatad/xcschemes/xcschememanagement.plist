@@ -23,12 +23,30 @@
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</dict>
 		<key>UIKitFirebaseChat.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>0E4ACD992995F1A100E0551D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>0E4ACDAF2995F1A200E0551D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>0E4ACDB92995F1A200E0551D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

@@ -14,7 +14,7 @@ class ChatMessageCollectionViewImageCell: ChatMessageCollectionViewBasicCell {
     
     var imageSize: (imageHeight: Double, imageWidth: Double) {
         if let iMessage = currentMessages as? imageMessage, let imageHeight = iMessage.imageHeight, let imageWidht = iMessage.imageWidth {
-            return (Double(imageHeight), Double(imageWidht))
+            return (Double(truncating: imageHeight), Double(truncating: imageWidht))
         } else {
             return (200, 200)
         }
@@ -53,25 +53,34 @@ class ChatMessageCollectionViewImageCell: ChatMessageCollectionViewBasicCell {
     // MARK: View life cycle
     
     override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
-        
-        let newFrame = layoutAttributes
-        let ratio = imageSize.imageHeight / imageSize.imageWidth
-        var desiredHeight: CGFloat = 0
-        let maxRatio = 2.0, minRation = 0.5
-        
-        if ratio >= minRation && ratio <= maxRatio {
-            desiredHeight = 200 * CGFloat(ratio)
-        } else if ratio > maxRatio {
-            desiredHeight = 200 * 2
-        } else if ratio < minRation {
-            desiredHeight = 200 * 0.5
+        if let id = id, cellHeight[id] == nil {
+            let newFrame = layoutAttributes
+            let ratio = imageSize.imageHeight / imageSize.imageWidth
+            var desiredHeight: CGFloat = 0
+            let maxRatio = 2.0, minRation = 0.5
+            
+            if ratio >= minRation && ratio <= maxRatio {
+                desiredHeight = 200 * CGFloat(ratio)
+            } else if ratio > maxRatio {
+                desiredHeight = 200 * 2
+            } else if ratio < minRation {
+                desiredHeight = 200 * 0.5
+            }
+            
+            newFrame.size.height = desiredHeight + 4
+            newFrame.size.width = UIScreen.main.bounds.width
+            layoutAttributes.frame = newFrame.frame
+            
+            cellHeight[id] = newFrame.frame
+//        }
+        } else if let id = id, let calculatedHeight = cellHeight[id] {
+            layoutAttributes.frame = calculatedHeight
+
         }
-        
-        newFrame.size.height = desiredHeight + 4
-        newFrame.size.width = UIScreen.main.bounds.width
         self.setNeedsLayout()
         self.layoutIfNeeded()
-        return newFrame
+        return layoutAttributes
+        
     }
     
     override init(frame: CGRect) {

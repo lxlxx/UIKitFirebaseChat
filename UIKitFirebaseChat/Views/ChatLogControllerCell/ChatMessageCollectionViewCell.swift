@@ -12,6 +12,10 @@ import Firebase
 class ChatMessageCollectionViewBasicCell: UICollectionViewCell {
     
     // MARK: Data
+    var id: Int? = nil
+    var calculatedRect: CGRect? = nil
+    
+    var isHeightCalculated: Bool = false
     
     var contentDirectionConstraint: NSLayoutConstraint!
     var messagesBelongTome: Bool { return currentMessages?.fromID == Auth.auth().currentUser?.uid }
@@ -51,16 +55,22 @@ class ChatMessageCollectionViewBasicCell: UICollectionViewCell {
     // MARK: View life cycle
     
     override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
-        
-        let newFrame = layoutAttributes
-        let desiredHeight = self.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
-        
-        newFrame.size.height = desiredHeight.height + 4
-        newFrame.size.width = UIScreen.main.bounds.width
-//        newFrame.size.width = (UIApplication.sharedApplication().keyWindow?.frame.width)!
-        self.setNeedsLayout()
-        self.layoutIfNeeded()
-        return newFrame
+        setNeedsLayout()
+        layoutIfNeeded()
+        if let id = id, cellHeight[id] == nil {
+            let newFrame = layoutAttributes
+            let desiredHeight = self.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+            
+            newFrame.size.height = desiredHeight.height + 4
+            newFrame.size.width = UIScreen.main.bounds.width
+            
+            cellHeight[id]  = newFrame.frame
+            layoutAttributes.frame = newFrame.frame
+        } else if let id = id, let calculatedHeight = cellHeight[id] {
+            layoutAttributes.frame = calculatedHeight
+
+        }
+        return layoutAttributes
     }
     
     override init(frame: CGRect) {
